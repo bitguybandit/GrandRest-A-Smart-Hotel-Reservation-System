@@ -1,0 +1,168 @@
+
+package GrandRest_HotelReservationSystem;
+
+
+import java.util.*;
+
+// ========== 1. ABSTRACTION & INHERITANCE ==========
+// Base abstract class
+abstract class Room {
+    private String name;
+    private double price;
+    private boolean available = true;
+
+    public Room(String name, double price) {
+        this.name = name;
+        this.price = price;
+    }
+
+    // ENCAPSULATION: controlled access to fields
+    public String getName() { return name; }
+    public double getPrice() { return price; }
+    public boolean isAvailable() { return available; }
+    public void setAvailable(boolean available) { this.available = available; }
+
+    // POLYMORPHISM: subclasses can override this
+    public abstract String getRoomInfo();
+
+    // Method to calculate price (can be overridden later)
+    public double calculatePrice(int days) {
+        return price * days;
+    }
+}
+
+// ========== 2. INHERITANCE & POLYMORPHISM ==========
+
+class StandardRoom extends Room {
+    public StandardRoom() { super("Standard Room", 1500); }
+
+    @Override
+    public String getRoomInfo() {
+        return getName() + " - ₱" + getPrice() + " (Basic comfort)";
+    }
+}
+
+class LuxuryRoom extends Room {
+    public LuxuryRoom() { super("Luxury Room", 2500); }
+
+    @Override
+    public String getRoomInfo() {
+        return getName() + " - ₱" + getPrice() + " (Spacious & elegant)";
+    }
+
+    // Override to add 10% luxury tax
+    @Override
+    public double calculatePrice(int days) {
+        return super.calculatePrice(days) * 1.10;
+    }
+}
+
+class DeluxeRoom extends Room {
+    public DeluxeRoom() { super("Deluxe Room", 7000); }
+
+    @Override
+    public String getRoomInfo() {
+        return getName() + " - ₱" + getPrice() + " (Premium suite experience)";
+    }
+
+    // Override to add 20% deluxe service charge
+    @Override
+    public double calculatePrice(int days) {
+        return super.calculatePrice(days) * 1.20;
+    }
+}
+
+// ========== 3. ENCAPSULATION ==========
+class Reservation {
+    private String firstName;
+    private String lastName;
+    private Room room;
+    private String paymentMethod;
+    private int numberOfDays;
+    private double totalPrice;
+
+    public Reservation(String firstName, String lastName, Room room, String paymentMethod, int numberOfDays) {
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.room = room;
+        this.paymentMethod = paymentMethod;
+        this.numberOfDays = numberOfDays;
+        this.totalPrice = room.calculatePrice(numberOfDays);
+    }
+
+    public void showDetails() {
+        System.out.println("\n=== Booking Confirmation ===");
+        System.out.println("Customer: " + firstName + " " + lastName);
+        System.out.println("Room Type: " + room.getName());
+        System.out.println("Days of Stay: " + numberOfDays);
+        System.out.println("Payment Method: " + paymentMethod);
+        System.out.println("Total Price: ₱" + totalPrice);
+    }
+}
+
+// ========== 4. MAIN CLASS (ABSTRACTION IN ACTION) ==========
+public class GrandRest_HotelReservationSystem{
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+
+        // Use polymorphism — store different subclasses in one array
+        Room[] rooms = { new StandardRoom(), new LuxuryRoom(), new DeluxeRoom() };
+
+        System.out.println("=== Welcome to GrandRest Hotel Reservation System   ===");
+
+        while (true) {
+            System.out.print("\nEnter Firstname: ");
+            String firstname = sc.nextLine();
+
+            System.out.print("Enter Lastname: ");
+            String lastname = sc.nextLine();
+
+            System.out.println("\nAvailable Room Types:");
+            for (int i = 0; i < rooms.length; i++) {
+                System.out.println((i + 1) + ". " + rooms[i].getRoomInfo() + 
+                                   " - " + (rooms[i].isAvailable() ? "Available" : "Unavailable"));
+            }
+
+            System.out.print("Choose room (1-3): ");
+            int choice = sc.nextInt();
+            sc.nextLine(); // consume newline
+
+            if (choice < 1 || choice > 3) {
+                System.out.println("Invalid choice!");
+                continue;
+            }
+
+            Room selectedRoom = rooms[choice - 1];
+
+            if (!selectedRoom.isAvailable()) {
+                System.out.println("\n❌ Sorry, " + selectedRoom.getName() + " is already booked.");
+                continue;
+            }
+
+            System.out.print("Enter number of days to stay: ");
+            int days = sc.nextInt();
+            sc.nextLine();
+
+            System.out.print("Enter Mode of Payment (Cash/Card/Gcash): ");
+            String paymentMethod = sc.nextLine();
+
+            // Create Reservation (Encapsulation in action)
+            Reservation reservation = new Reservation(firstname, lastname, selectedRoom, paymentMethod, days);
+            reservation.showDetails();
+
+            selectedRoom.setAvailable(false); // mark room as unavailable
+
+            System.out.println("\n✅ " + selectedRoom.getName() + " is now marked as unavailable.");
+
+            System.out.print("\nWould you like to book another room? (yes/no): ");
+            String again = sc.nextLine().trim().toLowerCase();
+
+            if (again.equals("no")) {
+                System.out.println("\nThank you for choosing GrandRest Hotel!");
+                break;
+            }
+        }
+
+        sc.close();
+    }
+}
